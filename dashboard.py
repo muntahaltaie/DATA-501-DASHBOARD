@@ -108,17 +108,13 @@ lake_coords = {
     "McClelland": (57.49125, -111.27844),
     "Namur": (57.4444, -112.6211),
     "Gregoire": (56.48447, -110.83511),
-
-    # ⭐ ADD AR6
     "AR6": (57.02, -111.50),
 }
-
-# Map coordinates
 df["Latitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[0])
 df["Longitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[1])
 
 # =========================
-# DISTANCE FROM AR6 (KEY ADDITION)
+# DISTANCE FROM AR6 
 # =========================
 AR6_LAT, AR6_LON = lake_coords["AR6"]
 
@@ -299,6 +295,7 @@ with tab1:
             """
             - Isadore Lake, Kearl Lake, McClelland Lake, Namur Lake: [Oil Sands Monitoring / OSMP Portal](https://osmdataportal.alberta.ca/applications/public.html?publicuser=Guest#waterdata/stationoverview)
             - Mildred Lake, Gregoire Lake: [Alberta Water Quality Data Portal](https://environment.extranet.gov.ab.ca/apps/WaterQuality/dataportal/)
+            - [Alberta Water Quality Data Portal](https://github.com/muntahaltaie/DATA-501-DASHBOARD/tree/main)
             """
         )
     with st.expander("Study Area & Site Classification", expanded=True):
@@ -338,11 +335,11 @@ with tab1:
         map_df,
         lat="Latitude",
         lon="Longitude",
-        color="Distance Group",
+        color= "Distance Group",
         size="Samples",
         hover_name="Lake",
         hover_data={
-            "Distance (km)": ":.1f",   # ✅ clean formatting
+            "Distance (km)": ":.1f",  
             "Latitude": False,
             "Longitude": False,
             "Samples": True
@@ -463,7 +460,7 @@ with tab2:
                 filtered_df,
                 x="Distance Group",
                 y=col,
-                color="Distance Group",
+                color= "Distance Group",
                 title=with_unit(col)
             )
             fig.update_yaxes(title_text=with_unit(col))
@@ -543,7 +540,6 @@ with tab3:
                 index=X.columns
             ).reset_index()
             loadings.columns = ["Variable", "PC1", "PC2"]
-            # FIX INDEX (start at 1)
             loadings = loadings.reset_index(drop=True)
             loadings.index = loadings.index + 1
 
@@ -764,7 +760,6 @@ with tab5:
                 .reset_index(drop=True)
             )
 
-            # FIX INDEX
             importance_df.index = importance_df.index + 1
 
 
@@ -878,7 +873,7 @@ if row_limit != "All":
 # Create display copy without breaking numeric dtypes
 preview_display = preview_df.copy()
 
-# For object/text columns only, replace missing with blank
+# For object/text columns only replace missing with blank
 for col in preview_display.columns:
     if preview_display[col].dtype == "object":
         preview_display[col] = preview_display[col].fillna("")
