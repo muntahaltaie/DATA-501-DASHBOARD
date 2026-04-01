@@ -226,11 +226,11 @@ with tab1:
 
     st.markdown(
         """
-        - Compare chemistry patterns across **Near**, **Mid**, and **Far** lakes.
+        - Compare water quality parameters across **Near**, **Mid**, and **Far** lakes.
         - Explore chemical distributions across lakes and distance groups.
         - Use PCA to assess multivariate structure.
         - Use ANOVA to test differences between groups.
-        - Use Random Forest to identify the strongest chemical drivers.
+        - Use Random Forest to identify the strongest chemical features.
         """
     )
 
