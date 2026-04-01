@@ -295,7 +295,7 @@ with tab1:
             """
             - Isadore Lake, Kearl Lake, McClelland Lake, Namur Lake: [Oil Sands Monitoring / OSMP Portal](https://osmdataportal.alberta.ca/applications/public.html?publicuser=Guest#waterdata/stationoverview)
             - Mildred Lake, Gregoire Lake: [Alberta Water Quality Data Portal](https://environment.extranet.gov.ab.ca/apps/WaterQuality/dataportal/)
-            - [Alberta Water Quality Data Portal](https://github.com/muntahaltaie/DATA-501-DASHBOARD/tree/main)
+            - [Repository](https://github.com/muntahaltaie/DATA-501-DASHBOARD/tree/main)
             """
         )
     with st.expander("Study Area & Site Classification", expanded=True):
