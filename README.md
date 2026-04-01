@@ -2,7 +2,7 @@
 
 ## Oil Sands Lake Analysis Dashboard
 
-**Live App:** [https://oil-sands-dashboard.streamlit.app/)
+**Live App:** https://oil-sands-dashboard.streamlit.app/
 
 ## Overview
 
