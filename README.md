@@ -15,8 +15,8 @@ Interactive dashboard for analyzing water chemistry across Near, Mid, and Far di
 - Standardized units across all parameters
 
 ## Data Sources
-- OSMP (Oil Sands Monitoring Program)
-- Alberta Water Quality Portal
+- OSMP (Oil Sands Monitoring Program): https://osmdataportal.alberta.ca/applications/public.html?publicuser=Guest#waterdata/stationoverview
+- Alberta Water Quality Portal: https://environment.extranet.gov.ab.ca/apps/WaterQuality/dataportal/
 
 ## Notes
 Data were compiled from multiple monitoring programs and standardized for analysis. Variation in coverage reflects the original data sources.
