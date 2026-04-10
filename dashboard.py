@@ -108,13 +108,17 @@ lake_coords = {
     "McClelland": (57.49125, -111.27844),
     "Namur": (57.4444, -112.6211),
     "Gregoire": (56.48447, -110.83511),
+
+    # ⭐ ADD AR6
     "AR6": (57.02, -111.50),
 }
+
+# Map coordinates
 df["Latitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[0])
 df["Longitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[1])
 
 # =========================
-# DISTANCE FROM AR6 
+# DISTANCE FROM AR6 (KEY ADDITION)
 # =========================
 AR6_LAT, AR6_LON = lake_coords["AR6"]
 
@@ -226,11 +230,11 @@ with tab1:
 
     st.markdown(
         """
-        - Compare water quality parameters across **Near**, **Mid**, and **Far** lakes.
+        - Compare chemistry patterns across **Near**, **Mid**, and **Far** lakes.
         - Explore chemical distributions across lakes and distance groups.
         - Use PCA to assess multivariate structure.
         - Use ANOVA to test differences between groups.
-        - Use Random Forest to identify the strongest chemical features.
+        - Use Random Forest to identify the strongest chemical drivers.
         """
     )
 
@@ -295,11 +299,7 @@ with tab1:
             """
             - Isadore Lake, Kearl Lake, McClelland Lake, Namur Lake: [Oil Sands Monitoring / OSMP Portal](https://osmdataportal.alberta.ca/applications/public.html?publicuser=Guest#waterdata/stationoverview)
             - Mildred Lake, Gregoire Lake: [Alberta Water Quality Data Portal](https://environment.extranet.gov.ab.ca/apps/WaterQuality/dataportal/)
-<<<<<<< HEAD
-            - [Repository](https://github.com/muntahaltaie/DATA-501-DASHBOARD/tree/main)
-=======
             - [Alberta Water Quality Data Portal](https://github.com/muntahaltaie/DATA-501-DASHBOARD/tree/main)
->>>>>>> 95125fc (Update dashboard URL)
             """
         )
     with st.expander("Study Area & Site Classification", expanded=True):
@@ -339,11 +339,11 @@ with tab1:
         map_df,
         lat="Latitude",
         lon="Longitude",
-        color= "Distance Group",
+        color="Distance Group",
         size="Samples",
         hover_name="Lake",
         hover_data={
-            "Distance (km)": ":.1f",  
+            "Distance (km)": ":.1f",   # ✅ clean formatting
             "Latitude": False,
             "Longitude": False,
             "Samples": True
@@ -464,11 +464,12 @@ with tab2:
                 filtered_df,
                 x="Distance Group",
                 y=col,
-                color= "Distance Group",
+                color="Distance Group",
                 title=with_unit(col)
             )
             fig.update_yaxes(title_text=with_unit(col))
             cols[i % 2].plotly_chart(fig, width="stretch")
+            
 
 # =========================
 # PCA
@@ -479,90 +480,145 @@ with tab3:
     pca_vars = st.multiselect(
         "Select variables for PCA",
         chemistry_vars,
-        default=[c for c in chemistry_vars if c not in ["pH (Field)"]]
+        default=[c for c in chemistry_vars if c not in ["pH (Field)"]],
+        key="pca_vars"
     )
 
     st.markdown("### Variables Included")
     vars_df = pd.DataFrame({"Variable": pca_vars})
+    vars_df = vars_df.reset_index(drop=True)
     vars_df.index = vars_df.index + 1
-
     st.dataframe(vars_df, width="stretch")
 
     if len(pca_vars) < 2:
         st.warning("Not enough chemistry variables are available to run PCA.")
     else:
-        X = filtered_df[pca_vars].copy()
-        X = X.apply(pd.to_numeric, errors="coerce")
-        X = X.dropna(axis=1, how="all")
-        X = X.loc[:, X.nunique() > 1]
-        X = X.fillna(X.median())
+        # -------------------------
+        # USE FILTERED DATA ONLY
+        # -------------------------
+        pca_source = filtered_df.copy()
 
-        if X.shape[1] < 2:
-            st.warning("After cleaning, not enough variables remain to compute PCA.")
+        # Ensure timestamp exists and parse it
+        if "Sampling Timestamp" not in pca_source.columns:
+            st.warning("Sampling Timestamp is required to aggregate data for PCA.")
         else:
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
-
-            pca = PCA(n_components=2)
-            pcs = pca.fit_transform(X_scaled)
-
-            pca_df = pd.DataFrame(pcs, columns=["PC1", "PC2"])
-            pca_df["Distance Group"] = filtered_df["Distance Group"].values
-            pca_df["Lake"] = filtered_df["Lake"].values
-
-            pc1_var = pca.explained_variance_ratio_[0] * 100
-            pc2_var = pca.explained_variance_ratio_[1] * 100
-
-            color_col = "Distance Group" if filtered_df["Distance Group"].nunique() > 1 else "Lake"
-
-            col1, col2 = st.columns([2, 1])
-
-            with col1:
-                fig_pca = px.scatter(
-                    pca_df,
-                    x="PC1",
-                    y="PC2",
-                    color=color_col,
-                    hover_data=["Lake"],
-                    title=f"PCA Scatter Plot (PC1: {pc1_var:.1f}%, PC2: {pc2_var:.1f}%)"
-                )
-                st.plotly_chart(fig_pca, width="stretch")
-
-            with col2:
-                variance_df = pd.DataFrame({
-                    "Component": ["PC1", "PC2"],
-                    "Explained Variance (%)": [pc1_var, pc2_var]
-                })
-                variance_df = variance_df.reset_index(drop=True)
-                variance_df.index = variance_df.index + 1
-
-                st.dataframe(variance_df, width="stretch")
-
-            loadings = pd.DataFrame(
-                pca.components_.T,
-                columns=["PC1", "PC2"],
-                index=X.columns
-            ).reset_index()
-            loadings.columns = ["Variable", "PC1", "PC2"]
-            loadings = loadings.reset_index(drop=True)
-            loadings.index = loadings.index + 1
-
-            st.markdown("### PCA Loadings")
-            selected_pc = st.selectbox("Select component", ["PC1", "PC2"], key="pca_component")
-            loadings_sorted = loadings.sort_values(selected_pc, key=lambda s: s.abs(), ascending=False)
-
-            fig_load = px.bar(
-                loadings_sorted.head(15),
-                x=selected_pc,
-                y="Variable",
-                orientation="h",
-                title=f"Top Variable Loadings for {selected_pc}"
+            pca_source["Sampling Timestamp"] = pd.to_datetime(
+                pca_source["Sampling Timestamp"], errors="coerce"
             )
-            fig_load.update_layout(yaxis={"categoryorder": "total ascending"})
-            st.plotly_chart(fig_load, width="stretch")
+            pca_source["Sampling Date"] = pca_source["Sampling Timestamp"].dt.date
 
-            st.dataframe(loadings, width="stretch")
+            # Keep only rows with a valid date
+            pca_source = pca_source.dropna(subset=["Sampling Date"])
 
+            # Aggregate by site/date/group
+            df_pca = pca_source.groupby(
+                ["Site Name", "Sampling Date", "Distance Group"],
+                as_index=False
+            ).agg(lambda x: x.dropna().iloc[0] if x.notna().any() else np.nan)
+
+            # Rebuild Lake column if needed
+            if "Lake" not in df_pca.columns:
+                df_pca["Lake"] = df_pca["Site Name"].apply(derive_lake)
+
+            # -------------------------
+            # BUILD PCA MATRIX
+            # -------------------------
+            X = df_pca[pca_vars].copy()
+            X = X.apply(pd.to_numeric, errors="coerce")
+
+            # Remove columns with all missing values
+            X = X.dropna(axis=1, how="all")
+
+            # Remove columns with no variation
+            X = X.loc[:, X.nunique(dropna=True) > 1]
+
+            if X.shape[1] < 2:
+                st.warning("After cleaning, not enough variables remain to compute PCA.")
+            else:
+                # Fill missing values with column median
+                X = X.fillna(X.median(numeric_only=True))
+
+                # Standardize
+                scaler = StandardScaler()
+                X_scaled = scaler.fit_transform(X)
+
+                # PCA
+                pca = PCA(n_components=2)
+                pcs = pca.fit_transform(X_scaled)
+
+                # Output dataframe
+                pca_df = pd.DataFrame(pcs, columns=["PC1", "PC2"])
+                pca_df["Distance Group"] = df_pca["Distance Group"].values
+                pca_df["Lake"] = df_pca["Lake"].values
+                pca_df["Site Name"] = df_pca["Site Name"].values
+                pca_df["Sampling Date"] = df_pca["Sampling Date"].values
+
+                pc1_var = pca.explained_variance_ratio_[0] * 100
+                pc2_var = pca.explained_variance_ratio_[1] * 100
+
+                color_col = (
+                    "Distance Group"
+                    if pca_df["Distance Group"].nunique() > 1
+                    else "Lake"
+                )
+
+                col1, col2 = st.columns([2, 1])
+
+                with col1:
+                    fig_pca = px.scatter(
+                        pca_df,
+                        x="PC1",
+                        y="PC2",
+                        color=color_col,
+                        hover_data=["Lake", "Site Name", "Sampling Date"],
+                        title=f"PCA Scatter Plot (PC1: {pc1_var:.1f}%, PC2: {pc2_var:.1f}%)"
+                    )
+                    st.plotly_chart(fig_pca, width="stretch")
+
+                with col2:
+                    variance_df = pd.DataFrame({
+                        "Component": ["PC1", "PC2"],
+                        "Explained Variance (%)": [pc1_var, pc2_var]
+                    })
+                    variance_df = variance_df.reset_index(drop=True)
+                    variance_df.index = variance_df.index + 1
+                    st.dataframe(variance_df, width="stretch")
+
+                # Loadings
+                loadings = pd.DataFrame(
+                    pca.components_.T,
+                    columns=["PC1", "PC2"],
+                    index=X.columns
+                ).reset_index()
+
+                loadings.columns = ["Variable", "PC1", "PC2"]
+                loadings = loadings.reset_index(drop=True)
+                loadings.index = loadings.index + 1
+
+                st.markdown("### PCA Loadings")
+                selected_pc = st.selectbox(
+                    "Select component",
+                    ["PC1", "PC2"],
+                    key="pca_component"
+                )
+
+                loadings_sorted = loadings.sort_values(
+                    selected_pc,
+                    key=lambda s: s.abs(),
+                    ascending=False
+                )
+
+                fig_load = px.bar(
+                    loadings_sorted.head(15),
+                    x=selected_pc,
+                    y="Variable",
+                    orientation="h",
+                    title=f"Top Variable Loadings for {selected_pc}"
+                )
+                fig_load.update_layout(yaxis={"categoryorder": "total ascending"})
+                st.plotly_chart(fig_load, width="stretch")
+
+                st.dataframe(loadings, width="stretch")
 # =========================
 # ANOVA
 # =========================
@@ -764,6 +820,7 @@ with tab5:
                 .reset_index(drop=True)
             )
 
+            # FIX INDEX
             importance_df.index = importance_df.index + 1
 
 
@@ -877,7 +934,7 @@ if row_limit != "All":
 # Create display copy without breaking numeric dtypes
 preview_display = preview_df.copy()
 
-# For object/text columns only replace missing with blank
+# For object/text columns only, replace missing with blank
 for col in preview_display.columns:
     if preview_display[col].dtype == "object":
         preview_display[col] = preview_display[col].fillna("")
