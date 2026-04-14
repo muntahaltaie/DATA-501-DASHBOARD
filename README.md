@@ -6,7 +6,7 @@
 
 ## Overview
 
-This project is an interactive Streamlit dashboard for analyzing water chemistry across Near, Mid, and Far distance groups in the Alberta oil sands region. The dashboard supports exploratory analysis, statistical testing, and machine learning-based insights using a cleaned and standardized dataset.
+This project is an interactive Streamlit dashboard for analyzing water chemistry across Near, Mid, and Far distance groups in the Alberta oil sands region. The dashboard supports exploratory analysis, statistical testing, and machine learning-based insights using a cleaned and standardized dataset. 
 
 ---
 
@@ -91,7 +91,20 @@ The study lakes are located in the Athabasca oil sands region of Alberta. Spatia
 
 ---
 
-## Data Sources
+## Data
+
+This project uses **surface water chemistry data** collected from six lakes in the Athabasca oil sands region. The raw data was downloaded from two separate monitoring portals and then combined, cleaned, and standardized into a single dataset for analysis.
+
+- Raw datasets were obtained from the OSMP and Alberta Water Quality Data Portal.
+- These datasets were merged, cleaned, and standardized (units, column names, and missing values) during preprocessing.
+- The final processed dataset used for all analysis and visualizations is:
+
+  - `FINAL_NORMALIZED_FULL.csv`
+
+- All code in this repository (dashboard and analysis) runs **only on this final cleaned dataset**, ensuring consistency and reproducibility.
+- Only **surface water data** was used, meaning results reflect short-term variability rather than long-term accumulation (e.g., sediment records).
+
+### Data Sources
 
 - **Isadore, Kearl, McClelland, Namur:**  
   Oil Sands Monitoring / OSMP Portal  
@@ -107,14 +120,46 @@ The study lakes are located in the Athabasca oil sands region of Alberta. Spatia
 
 - `dashboard.py` → main Streamlit dashboard  
 - `FINAL_NORMALIZED_FULL.csv` → cleaned dataset  
+- `make_report_figures.py` → script to regenerate report figures  
+- `report_figures/` → output figures used in the final report  
 - `study_area_map.png` → study area reference  
 - `requirements.txt` → dependencies  
 - `README.md` → documentation  
 
 ---
+## Environment
 
+This project was developed and tested using the following environment:
+
+- Python 3.10+  
+- Streamlit  
+- Pandas  
+- NumPy  
+- Scikit-learn  
+- Matplotlib / Seaborn  
+
+All required dependencies are listed in `requirements.txt`.
+
+To install dependencies:
+
+```bash
+pip install -r requirements.txt
+
+---
 ## Run Locally
 
 ```bash
 pip install -r requirements.txt
 streamlit run dashboard.py
+
+---
+
+## Reproducibility
+
+This repository is designed to be fully reproducible.
+
+### Generate Report Figures
+All figures used in the final report can be regenerated using:
+
+```bash
+python make_report_figures.py
