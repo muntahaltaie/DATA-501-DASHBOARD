@@ -17,9 +17,7 @@ st.set_page_config(layout="wide", page_title="Oil Sands Lake Analysis Dashboard"
 st.title("Oil Sands Lake Analysis Dashboard")
 st.caption("Interactive dashboard for comparing lake chemistry across Near, Mid, and Far distance groups.")
 
-# =========================
 # HELPERS
-# =========================
 def derive_lake(site_name: str) -> str:
     if pd.isna(site_name):
         return "Unknown"
@@ -73,10 +71,7 @@ def with_unit(var_name: str) -> str:
     unit = UNIT_MAP.get(var_name, "")
     return f"{var_name} ({unit})" if unit else var_name
 
-
-# =========================
 # LOAD DATA
-# =========================
 import numpy as np
 
 @st.cache_data
@@ -98,9 +93,8 @@ def load_data():
 
 df = load_data()
 
-# =========================
+
 # COORDINATES (INCLUDING AR6)
-# =========================
 lake_coords = {
     "Isadore": (57.23041, -111.60697),
     "Mildred": (57.055560, -111.588890),
@@ -109,7 +103,7 @@ lake_coords = {
     "Namur": (57.4444, -112.6211),
     "Gregoire": (56.48447, -110.83511),
 
-    # ⭐ ADD AR6
+    # ADD AR6
     "AR6": (57.02, -111.50),
 }
 
@@ -117,9 +111,7 @@ lake_coords = {
 df["Latitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[0])
 df["Longitude"] = df["Lake"].map(lambda x: lake_coords.get(x, (np.nan, np.nan))[1])
 
-# =========================
-# DISTANCE FROM AR6 (KEY ADDITION)
-# =========================
+# DISTANCE FROM AR6 
 AR6_LAT, AR6_LON = lake_coords["AR6"]
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -142,9 +134,7 @@ df["Distance (km)"] = haversine(
     AR6_LON
 )
 
-# =========================
 # CHEMISTRY VARIABLES
-# =========================
 chemistry_vars = [
     "Aluminum Dissolved",
     "Aluminum Total Recoverable",
@@ -174,9 +164,7 @@ chemistry_vars = [
 ]
 chemistry_vars = [c for c in chemistry_vars if c in df.columns]
 
-# =========================
 # FILTERS
-# =========================
 col1, col2 = st.columns(2)
 
 with col1:
@@ -199,9 +187,7 @@ if selected_group != "All":
 if selected_lake != "All":
     filtered_df = filtered_df[filtered_df["Lake"] == selected_lake]
 
-# =========================
 # KPI CARDS
-# =========================
 col1, col2, col3 = st.columns(3)
 
 
@@ -215,16 +201,12 @@ col3.metric(
     "N/A" if pd.isna(date_min) or pd.isna(date_max) else f"{date_min.date()} → {date_max.date()}"
 )
 
-# =========================
 # TABS
-# =========================
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     ["Overview", "Distributions", "PCA", "ANOVA", "Random Forest"]
 )
 
-# =========================
 # OVERVIEW
-# =========================
 with tab1:
     st.subheader("Overview")
 
@@ -324,9 +306,7 @@ with tab1:
     The 50 km radius shown provides a spatial reference for defining mid vs. far-field conditions.
     """)
     
-    # =========================
     # INTERACTIVE MAP
-    # =========================
     st.subheader("Interactive Lake Map")
 
     map_df = (
@@ -343,7 +323,7 @@ with tab1:
         size="Samples",
         hover_name="Lake",
         hover_data={
-            "Distance (km)": ":.1f",   # ✅ clean formatting
+            "Distance (km)": ":.1f",   
             "Latitude": False,
             "Longitude": False,
             "Samples": True
@@ -353,9 +333,7 @@ with tab1:
         title="Lake Locations Relative to Oil Sands Site (AR6)"
     )
 
-    # =========================
-    # ADD AR6 (DISTINCT)
-    # =========================
+    # ADD AR6 
     fig_map.add_scattermapbox(
         lat=[57.02],
         lon=[-111.50],
@@ -378,9 +356,7 @@ with tab1:
 
     st.plotly_chart(fig_map, width="stretch", key="map_chart")
 
-    # =========================
     # CAPTION
-    # =========================
     st.caption(
         """
         AR6 represents the central oil sands operational site. 
@@ -445,9 +421,7 @@ with tab1:
                 )
 
 
-# =========================
 # DISTRIBUTIONS
-# =========================
 with tab2:
     st.subheader("Parameter Distributions")
 
@@ -471,9 +445,7 @@ with tab2:
             cols[i % 2].plotly_chart(fig, width="stretch")
             
 
-# =========================
 # PCA
-# =========================
 with tab3:
     st.subheader("PCA Analysis")
 
@@ -493,9 +465,9 @@ with tab3:
     if len(pca_vars) < 2:
         st.warning("Not enough chemistry variables are available to run PCA.")
     else:
-        # -------------------------
+        
+   
         # USE FILTERED DATA ONLY
-        # -------------------------
         pca_source = filtered_df.copy()
 
         # Ensure timestamp exists and parse it
@@ -520,9 +492,8 @@ with tab3:
             if "Lake" not in df_pca.columns:
                 df_pca["Lake"] = df_pca["Site Name"].apply(derive_lake)
 
-            # -------------------------
+    
             # BUILD PCA MATRIX
-            # -------------------------
             X = df_pca[pca_vars].copy()
             X = X.apply(pd.to_numeric, errors="coerce")
 
@@ -619,9 +590,8 @@ with tab3:
                 st.plotly_chart(fig_load, width="stretch")
 
                 st.dataframe(loadings, width="stretch")
-# =========================
+                
 # ANOVA
-# =========================
 with tab4:
     st.subheader("ANOVA Analysis")
 
@@ -716,9 +686,7 @@ with tab4:
                 f"**{len(significant)}** variables met alpha = {alpha:.2f}."
             )
 
-# =========================
 # RANDOM FOREST
-# =========================
 with tab5:
     st.subheader("Random Forest Analysis")
 
@@ -844,9 +812,7 @@ with tab5:
 
             st.dataframe(importance_df, width="stretch")
 
-# =========================
 # DATA PREVIEW
-# =========================
 st.subheader("Data Preview")
 
 preview_df = filtered_df.copy()
